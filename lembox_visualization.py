@@ -56,7 +56,7 @@ def getLemboxAvgs(rawV, rawI, rawT, avgLen = 4096):
         avgI.append(s/avgLen)
         s -= iBuffer.pop(0)
 
-    t_avg = rawT[50*avgLen] - rawT[49*avgLen]        # compute time length of rolling average
+    t_avg = rawT[len(rawT)/2] - rawT[len(rawT)/2 + avgLen]        # compute time length of rolling average
 
     return t_avg, avgV, avgI, avgT
 

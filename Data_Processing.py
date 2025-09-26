@@ -82,8 +82,12 @@ def process_data_folder(folder_path):
             print(f"Error processing FLIR folder: {e}")
 
 def main():
-    print("Please select the data collection folder...")
-    folder_path = select_folder()
+
+    if len(sys.argv) == 2:
+        folder_path = sys.argv[1]
+    else:
+        print("Please select the data collection folder...")
+        folder_path = select_folder()
     
     if not folder_path:
         print("No folder selected. Exiting...")
