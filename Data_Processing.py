@@ -46,6 +46,16 @@ def process_data_folder(folder_path):
                         output_path = file_path.with_suffix('.csv')
                         subprocess.run([sys.executable, str(script_path), 
                                      str(file_path), str(output_path)], check=True)
+                    elif script_name == 'audio_conversion.py':
+                        subprocess.run([sys.executable, str(script_path), 
+                                     str(file_path)], check=True)
+                        subprocess.run([sys.executable, str(script_dir / 'audio_visualization.py'),
+                                        str(folder / 'microphone_data.wav')], check=True)
+                    elif script_name == 'lembox_scaling.py':
+                        subprocess.run([sys.executable, str(script_path),
+                                         str(file_path)], check=True)
+                        subprocess.run([sys.executable, str(script_dir / 'lembox_visualization.py'),
+                                         str(file_path)], check=True)
                     else:
                         subprocess.run([sys.executable, str(script_path), 
                                      str(file_path)], check=True)
