@@ -1,6 +1,3 @@
-# DCP2
-Development Cell Post Processing (DCP2) program to be used on data collected using the Development Cell Data Collection (DC2) program.
-
 # Run these commands in the terminal
 python -m venv venv
 .\venv\Scripts\activate
@@ -19,7 +16,7 @@ Multiplies the voltage and current readings collected from the Miller LEM Box by
 Takes robot messages recorded in text document with XML format and parses them, writing them to a CSV file
 
 # create_flirvideo
-Take folder of FLIR data saved in numpy format and creates color mapped image frames and a video for viewing
+Take FLIR data saved in numpy format and creates color mapped image frames and a video for viewing
 
 # create_xirisvideo.py
 ....
