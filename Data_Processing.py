@@ -61,6 +61,13 @@ def process_data_folder(folder_path):
                                      str(file_path)], check=True)
                 except subprocess.CalledProcessError as e:
                     print(f"Error running {script_name}: {e}")
+
+    
+    if (folder / 'robot_data.csv').is_file() and (folder / 'lembox_data.csv').is_file():
+        print()
+        subprocess.run([sys.executable, str(script_dir / 'heat_input.py'),
+                                        str(folder)], check=True)
+    
     
     # Check for FLIR folder
     flir_folder = folder / 'FLIR'

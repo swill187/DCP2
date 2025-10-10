@@ -126,7 +126,9 @@ def npy_to_video(input_folder, output_file, output_frames_folder, fps=10, width=
             out.write(final_image)
             frame_filename = os.path.join(output_frames_folder, f"{os.path.splitext(npy_file)[0]}.png")
             cv2.imwrite(frame_filename, final_image)
-            print(f"[{i+1}/{len(npy_files_with_timestamps)}] Saved frame: {frame_filename}")
+
+            if (i + 1) % 100 == 0:
+                print(f"[{i+1}/{len(npy_files_with_timestamps)}] Saved frame: {frame_filename}")
             
         except Exception as e:
             print(f"Error processing {npy_file}: {e}")
