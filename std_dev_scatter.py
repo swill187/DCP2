@@ -1,4 +1,4 @@
-from lembox_visualization import drawStdDev, readLemboxData
+from lembox_visualization import drawStdDev, readLemboxData, getLemboxAvgs
 import matplotlib.pyplot as plt
 import sys
 import os
@@ -42,6 +42,7 @@ def getStdDevs(data):
 
     for dir in data:
         t, i, v = readLemboxData(dir + '/lembox_data.csv')
+        t, i, v = getLemboxAvgs(v, i, t, 1000)
         sd_i, sd_v = drawStdDev(t, i, v, "", False)
 
         stdDevs[0].append(sd_i)
