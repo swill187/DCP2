@@ -29,9 +29,10 @@ col_types = {
 
 # added explicit dtype definitions to prevent dtypeWarning message. skipfooter avoids type error caused by debugging messages appended to data. python engine is required to use the skipfooter option.
 df = pd.read_csv(input_file, dtype=col_types, skipfooter=2, engine='python')
-df['Scaled_Voltage(V)'] = df['Voltage(V)'] * 10
-df['Scaled_Current(A)'] = df['Current(A)'] * 100
+if 'Scaled_Voltage(V)' not in df.columns:
+    df['Scaled_Voltage(V)'] = df['Voltage(V)'] * 10
+    df['Scaled_Current(A)'] = df['Current(A)'] * 100
 
-# Save back to the same file
-df.to_csv(input_file, index=False)
-print(f"Scaling complete. Original file updated: {input_file}")
+    # Save back to the same file
+    df.to_csv(input_file, index=False)
+    print(f"Scaling complete. Original file updated: {input_file}")
