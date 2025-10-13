@@ -38,15 +38,19 @@ def searchDir(dir):
     return data_folders
 
 def getStdDevs(data):
-    stdDevs = [[], []]
+    stdDevs = [[[], []], [[], []]]
 
     for dir in data:
         t, i, v = readLemboxData(dir + '/lembox_data.csv')
-        t, i, v = getLemboxAvgs(v, i, t, 1000)
+        t_scale, tAvg, iAvg, vAvg = getLemboxAvgs(v, i, t, 1000)
         sd_i, sd_v = drawStdDev(t, i, v, "", False)
+        sd_i_avg, sd_v_avg = drawStdDev(tAvg, iAvg, vAvg, "", False)
 
-        stdDevs[0].append(sd_i)
-        stdDevs[1].append(sd_v)
+        stdDevs[0][0].append(sd_i)
+        stdDevs[1][0].append(sd_v)
+
+        stdDevs[0][1].append(sd_i_avg)
+        stdDevs[1,1].append(sd_v_avg)
 
     return stdDevs
 
@@ -58,10 +62,17 @@ def plotStdDevs(stdDevs):
         n.append(i)
         i += 1
 
-    fig, ax = plt.subplots(2,1, sharex=True, constrained_layout=True)
-    ax[0].scatter(n, stdDevs[0])
-    ax[1].scatter(n, stdDevs[1])
-    fig.set_size_inches(15,10)
+    fig, ax = plt.subplots(2,2, sharex=True, constrained_layout=True)
+    ax[0,0].scatter(n, stdDevs[0,0])
+    ax[0,0].set_ylabel('SD I')
+    ax[1,0].scatter(n, stdDevs[1])
+    ax[1,0].set_ylabel('SD V')
+
+    ax[0,1].scatter(n, stdDevs[1,0])
+    ax[0,1].set_ylabel('SD I avg')
+    ax[1,1].scatter(n, stdDevs[1,1])
+    ax[1,1].set_ylabel('SD V avg')
+    fig.set_size_inches(30,10)
 
     plt.show()
 
