@@ -2,6 +2,8 @@ from lembox_visualization import drawStdDev, readLemboxData, getLemboxAvgs
 import matplotlib.pyplot as plt
 import sys
 import os
+import subprocess
+from pathlib import Path
 from tkinter import filedialog
 
 def selectParent():
@@ -32,7 +34,8 @@ def searchDir(dir):
                 else:
                     subsearch = searchDir(entry.path)
                     if subsearch:
-                        data_folders.append(subsearch)
+                        for dir in subsearch:
+                            data_folders.append(dir)
 
     data_folders.sort()
     return data_folders
@@ -41,6 +44,9 @@ def getStdDevs(data):
     stdDevs = [[[], []], [[], []]]
 
     for dir in data:
+        print(dir)
+        subprocess.run([sys.executable, str(Path(__file__).parent) + '/lembox_scaling.py',
+                                         dir + '/lembox_data.csv'], check=True)
         t, i, v = readLemboxData(dir + '/lembox_data.csv')
         t_scale, tAvg, iAvg, vAvg = getLemboxAvgs(v, i, t, 1000)
         sd_i, sd_v = drawStdDev(t, i, v, "", False)
