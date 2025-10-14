@@ -45,8 +45,8 @@ def getStdDevs(data):
 
     for dir in data:
         print(dir)
-        subprocess.run([sys.executable, str(Path(__file__).parent) + '/lembox_scaling.py',
-                                         dir + '/lembox_data.csv'], check=True)
+        #subprocess.run([sys.executable, str(Path(__file__).parent) + '/lembox_scaling.py',
+        #                                 dir + '/lembox_data.csv'], check=True)
         t, i, v = readLemboxData(dir + '/lembox_data.csv')
         t_scale, tAvg, iAvg, vAvg = getLemboxAvgs(v, i, t, 1000)
         sd_i, sd_v = drawStdDev(t, i, v, "", False)
@@ -56,7 +56,7 @@ def getStdDevs(data):
         stdDevs[1][0].append(sd_v)
 
         stdDevs[0][1].append(sd_i_avg)
-        stdDevs[1,1].append(sd_v_avg)
+        stdDevs[1][1].append(sd_v_avg)
 
     return stdDevs
 
@@ -64,20 +64,20 @@ def plotStdDevs(stdDevs):
     n = []
 
     i = 1
-    for dev in stdDevs[0]:
+    for dev in stdDevs[0][0]:
         n.append(i)
         i += 1
 
     fig, ax = plt.subplots(2,2, sharex=True, constrained_layout=True)
-    ax[0,0].scatter(n, stdDevs[0,0])
-    ax[0,0].set_ylabel('SD I')
-    ax[1,0].scatter(n, stdDevs[1])
-    ax[1,0].set_ylabel('SD V')
+    ax[0][0].scatter(n, stdDevs[0][0])
+    ax[0][0].set_ylabel('SD I')
+    ax[1][0].scatter(n, stdDevs[1][0])
+    ax[1][0].set_ylabel('SD V')
 
-    ax[0,1].scatter(n, stdDevs[1,0])
-    ax[0,1].set_ylabel('SD I avg')
-    ax[1,1].scatter(n, stdDevs[1,1])
-    ax[1,1].set_ylabel('SD V avg')
+    ax[0][1].scatter(n, stdDevs[0][1])
+    ax[0][1].set_ylabel('SD I avg')
+    ax[1][1].scatter(n, stdDevs[1][1])
+    ax[1][1].set_ylabel('SD V avg')
     fig.set_size_inches(30,10)
 
     plt.show()

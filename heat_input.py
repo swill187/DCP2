@@ -47,9 +47,9 @@ def get_vel(pos_lem, d):
         vel[3].append(math.sqrt(math.pow(vel[0][i],2) + math.pow(vel[1][i],2) + math.pow(vel[2][i],2)))
 
     fig, ax = plt.subplots(constrained_layout=True)
-    ax.plot(pos_lem['time'][:(-1 * scale)],vel[3])
+    ax.plot(pos_lem['time'][:(-1 * scale)],vel[0])
     fig.set_size_inches(15,10)
-    plt.savefig(d + '/visualizations/combined_velocity.png')
+    plt.savefig(d + '/visualizations/x_velocity.png')
 
     pos_lem = pd.DataFrame({'time':pos_lem['time'][:-scale], 'Voltage':pos_lem['Voltage'][:-scale], 
                             'Current':pos_lem['Current'][:-scale], 'Pos_x':pos_lem['Pos_x'][:-scale], 
@@ -84,12 +84,13 @@ def get_heat_input(pos_lem, d):
         s -= HIBuffer.pop(0)
 
 
-    fig, ax = plt.subplots(2,1, sharex=True, constrained_layout=True)
+    fig, ax = plt.subplots(3,1, sharex=False, constrained_layout=True)
     ax[0].scatter(pos_lem['time'], hi)
     ax[1].scatter(pos_lem['time'][avgLen - 1:], avgHI)
+    ax[2].scatter(pos_lem['time'], pos_lem['vel_comb'])
     ax[0].set_ylim(0,3000)
     ax[1].set_ylim(0,3000)
-    fig.set_size_inches(15,10)
+    fig.set_size_inches(22,10)
     plt.savefig(d + '/visualizations/heat_input.png')
 
     return pos_lem
