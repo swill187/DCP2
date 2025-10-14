@@ -3,6 +3,7 @@ import os
 import sys
 import numpy as np
 import datetime
+from data_manipulation import csvHasColumn
 
 # Get the directory where the script is located
 script_dir = os.path.dirname(os.path.abspath(__file__))
@@ -15,6 +16,7 @@ else:
 
 print(f"Reading and updating file: {input_file}")
 
+# added explicit dtype definitions to prevent dtypeWarning message. skipfooter avoids type error caused by debugging messages appended to data. python engine is required to use the skipfooter option.
 col_types = {
     'Sample': np.int32,
     'PerfTime(s)': np.float64,
@@ -26,13 +28,14 @@ col_types = {
 }
 
 # Read, scale, and update the data in place
-
-# added explicit dtype definitions to prevent dtypeWarning message. skipfooter avoids type error caused by debugging messages appended to data. python engine is required to use the skipfooter option.
-df = pd.read_csv(input_file, dtype=col_types, skipfooter=2, engine='python')
-if 'Scaled_Voltage(V)' not in df.columns:
+if not csvHasColumn(input_file, 'Scaled_Voltage(V)'):
+    df = pd.read_csv(input_file, dtype=col_types, skipfooter=2, engine='python')
     df['Scaled_Voltage(V)'] = df['Voltage(V)'] * 10
     df['Scaled_Current(A)'] = df['Current(A)'] * 100
 
     # Save back to the same file
     df.to_csv(input_file, index=False)
     print(f"Scaling complete. Original file updated: {input_file}")
+    
+else:
+    print(f'{input_file} already scaled!')
