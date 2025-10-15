@@ -1,13 +1,13 @@
 import pandas as pd
 import sys
 from tkinter import filedialog
-from lembox_visualization import getLemboxData
+from lembox_visualization import getLemboxData, getTimeData
 from position import readRSI, plotPosValColormap
 from data_manipulation import dfToCsv
 import os
 import matplotlib.pyplot as plt
 
-def alignData(dir, lem, rsi, forceDataUpdate=True):
+def alignData(dir, lem, rsi, forceDataUpdate=False):
     print('         Aligning data...')
 
     if not os.access(dir +'/aligned_data.csv', os.R_OK) or forceDataUpdate:
@@ -40,6 +40,9 @@ def main():
         dir = sys.argv[1]
 
     lem_time, curr, volt, avgI, avgV = getLemboxData(dir + '/lembox_data.csv')
+    startTime, stopTime = getTimeData(avgV, lem_time, dir)
+
+    #startTime /= 20000; stopTime /= 20000
     lem = (lem_time, curr, avgI, volt, avgV)
 
     pos, vel, rsi_time = readRSI(dir + '/robot_data.csv', True)
@@ -47,9 +50,8 @@ def main():
 
     df = alignData(dir, lem, rsi)
 
-    scale = int(len(df['Pos_x(mm)'])/9)
-    plotPosValColormap((df['Pos_x(mm)'][:scale], df['Pos_y(mm)'][:scale], df['Pos_z(mm)'][:scale]), df['Avg_Current(A)'][:scale])
-    plotPosValColormap((df['Pos_x(mm)'][:scale], df['Pos_y(mm)'][:scale], df['Pos_z(mm)'][:scale]), df['Avg_Voltage(V)'][:scale])
+    plotPosValColormap((df['Pos_x(mm)'][:stopTime], df['Pos_y(mm)'][:stopTime], df['Pos_z(mm)'][:stopTime]), df['Avg_Current(A)'][:stopTime], 'Rolling Average Current (A)', 'Current as a function of position')
+    plotPosValColormap((df['Pos_x(mm)'][:stopTime], df['Pos_y(mm)'][:stopTime], df['Pos_z(mm)'][:stopTime]), df['Avg_Voltage(V)'][:stopTime], 'Rolling Average Voltage (V)', 'Voltage as a function of position')
 
     plt.show()
 

@@ -63,10 +63,10 @@ def process_data_folder(folder_path):
                     print(f"Error running {script_name}: {e}")
 
     
-    if (folder / 'robot_data.csv').is_file() and (folder / 'lembox_data.csv').is_file():
-        print()
-        subprocess.run([sys.executable, str(script_dir / 'heat_input.py'),
-                                        str(folder)], check=True)
+    #if (folder / 'robot_data.csv').is_file() and (folder / 'lembox_data.csv').is_file():
+    #    print()
+    #    subprocess.run([sys.executable, str(script_dir / 'heat_input.py'),
+    #                                    str(folder)], check=True)
     
     
     # Check for FLIR folder

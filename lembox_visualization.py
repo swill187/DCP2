@@ -64,7 +64,7 @@ def drawStdDev(t, i, v, d, draw=True):
 
     return np.std(i), np.std(v)
 
-def getTimeData(avgV, avgT):
+def getTimeData(avgV, avgT, dir):
     startTime = 0
     while True:
         if avgV[startTime] > 1:
@@ -79,6 +79,21 @@ def getTimeData(avgV, avgT):
         elif avgV[stopTime] < 1 or stopTime >= len(avgV) - 1:
             break
         stopTime += 1
+
+    if not os.access(dir +'/params.csv', os.R_OK):
+        df = pd.DataFrame()
+        dfToCsv(df, dir + '/params.csv')
+
+    try:
+        df = pd.read_csv(dir + '/params.csv')
+    except pd.errors.EmptyDataError:
+        df = pd.DataFrame()
+
+    if not dfHasColumn(df, 'Weld_Start_Time(s)'):
+        dfAddColumn(df, startTime/sample_rate, 'Weld_Start_Time(s)')
+        dfAddColumn(df, stopTime/sample_rate, 'Weld_Stop_Time(s)')
+
+        dfToCsv(df, dir + '/params.csv')
 
     return startTime, stopTime
 
@@ -113,6 +128,7 @@ def drawLemboxVis(f, **kwargs):
     startup = False
     p_start = 0
     p_stop = -1
+    dir = os.path.split(f)[0]
 
     if 'pt_sz' in kwargs:
         pt_sz = kwargs['pt_sz']
@@ -130,15 +146,17 @@ def drawLemboxVis(f, **kwargs):
             pt_sz = 0.25
             n = 200
             startup = True
-            p_start = int(1.95*sample_rate)
-            p_stop = int(2*sample_rate) + int(0.5*sample_rate) + int(0.1*sample_rate)
+            #p_start = int(1.95*sample_rate)
+            #p_stop = int(2*sample_rate) + int(0.5*sample_rate) + int(0.1*sample_rate)
+            p_start = int(10*sample_rate)
+            p_stop = int(10*sample_rate) + int(0.6*sample_rate)
 
     t, i, v, avgI, avgV = getLemboxData(f, n)
 
     t_scale = t[int(len(t)/2) + n] - t[int(len(t)/2)]        # compute time length of rolling average
     t_scale = f"{t_scale:.5f}"
 
-    startTime, stopTime = getTimeData(avgV, t)
+    startTime, stopTime = getTimeData(avgV, t, dir)
 
     startTime -= 2*sample_rate      # set observed window to welding time +- 2 seconds
     stopTime += 2*sample_rate
@@ -152,8 +170,6 @@ def drawLemboxVis(f, **kwargs):
     v = v[startTime:stopTime]
     avgV = avgV[startTime:stopTime]
     avgI = avgI[startTime:stopTime]
-
-    dir = os.path.split(f)[0]
 
     print('         Drawing LEMBOX vis...')
 

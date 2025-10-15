@@ -78,12 +78,13 @@ def plotPos(pos):
 
     plt.show()
 
-def plotPosValColormap(pos, val, sparsity = 1):
+def plotPosValColormap(pos, val, val_id='', title='', sparsity = 100):
     print('         Plotting position-wise colormap')
 
-    pos_x = pos[0]
-    pos_y = pos[1]
-    pos_z = pos[2]
+    pos_x = pos[0].to_numpy()
+    pos_y = pos[1].to_numpy()
+    pos_z = pos[2].to_numpy()
+    val   = val.to_numpy()
 
     pos_sparse = [[], [], []]
     val_sparse = []
@@ -96,11 +97,20 @@ def plotPosValColormap(pos, val, sparsity = 1):
             val_sparse.append(val[i])
 
     fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
-    ax.scatter(pos_sparse[0],pos_sparse[1],pos_sparse[2], c=val_sparse, cmap='viridis')
+    scatter = ax.scatter(pos_sparse[0],pos_sparse[1],pos_sparse[2], c=val_sparse, cmap='viridis')
     ax.set_aspect('equal')
     ax.disable_mouse_rotation()
-    #ax.colorbar()
-    fig.set_size_inches(15,10)
+
+    ax.set_xlabel('X (mm)', labelpad=50)
+    ax.set_ylabel('Y (mm)')
+    ax.set_zlabel('Z (mm)')
+
+    ax.locator_params(axis='y', nbins = 5)
+    ax.locator_params(axis='z', nbins = 5)
+    ax.set_title(title)
+    fig.set_size_inches(18,12)
+    fig.tight_layout()
+    fig.colorbar(scatter, label=val_id, shrink=0.5)
 
 def main():
 
