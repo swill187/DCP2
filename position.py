@@ -2,17 +2,22 @@ import sys
 import math
 from tkinter import filedialog
 import pandas as pd
+import numpy as np
 from data_manipulation import dfHasColumn, dfAddColumn, dfToCsv
 import matplotlib.pyplot as plt
 
-RSI_rate = 1000
+RSI_rate = 250
 plt.style.use('_mpl-gallery')
-plt.rcParams['figure.constrained_layout.use'] = True
+#plt.rcParams['figure.tight_layout.use'] = True
 
-def readRSI(f, forceDataUpdate = True, window = int(0.25*RSI_rate)):
+def readRSI(f, window = int(0.25*RSI_rate), forceDataUpdate = False):
     print('         Reading RSI data...')
 
     df = pd.read_csv(f)
+
+    if df['RelativeTime'][10250] - df['RelativeTime'][10000] - 0.5 < 0:
+        RSI_rate = 1000
+        window = int(0.25*RSI_rate)
 
     pos_x = df['RIst_X']
     pos_y = df['RIst_Y']
@@ -78,13 +83,16 @@ def plotPos(pos):
 
     plt.show()
 
-def plotPosValColormap(pos, val, val_id='', title='', sparsity = 100):
+#needs conversion to **kwargs
+def plotPosValColormap(pos, val, val_id='', title='', cmin = 0, cmax = -1, sparsity = 100):
     print('         Plotting position-wise colormap')
 
     pos_x = pos[0].to_numpy()
     pos_y = pos[1].to_numpy()
     pos_z = pos[2].to_numpy()
     val   = val.to_numpy()
+
+    if cmax == -1: cmax = np.nanmax(val)
 
     pos_sparse = [[], [], []]
     val_sparse = []
@@ -97,7 +105,7 @@ def plotPosValColormap(pos, val, val_id='', title='', sparsity = 100):
             val_sparse.append(val[i])
 
     fig, ax = plt.subplots(subplot_kw={'projection': '3d'})
-    scatter = ax.scatter(pos_sparse[0],pos_sparse[1],pos_sparse[2], c=val_sparse, cmap='viridis')
+    scatter = ax.scatter(pos_sparse[0],pos_sparse[1],pos_sparse[2], c=val_sparse, cmap='inferno', vmin=cmin, vmax=cmax)
     ax.set_aspect('equal')
     ax.disable_mouse_rotation()
 
@@ -108,7 +116,7 @@ def plotPosValColormap(pos, val, val_id='', title='', sparsity = 100):
     ax.locator_params(axis='y', nbins = 5)
     ax.locator_params(axis='z', nbins = 5)
     ax.set_title(title)
-    fig.set_size_inches(18,12)
+    fig.set_size_inches(16,10)
     fig.tight_layout()
     fig.colorbar(scatter, label=val_id, shrink=0.5)
 

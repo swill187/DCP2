@@ -19,7 +19,7 @@ def getLemboxData(f, n = 1000, forceDataUpdate=False):
     curr = df['Scaled_Current(A)'].to_numpy()
     volt = df['Scaled_Voltage(V)'].to_numpy()
 
-    if not dfHasColumn(df, 'Avg_Voltage(V)') or forceDataUpdate:
+    if not dfHasColumn(df, 'Avg_Voltage(V)') or forceDataUpdate or n==200:
         avgV =  getRollingAvg(volt, n)
         avgI = getRollingAvg(curr, n)
 
@@ -31,7 +31,9 @@ def getLemboxData(f, n = 1000, forceDataUpdate=False):
         dfAddColumn(df, avgV, 'Avg_Voltage(V)')
         dfAddColumn(df, avgI, 'Avg_Current(A)')
         dfAddColumn(df, time, 'Interpolated_Time(s)')
-        dfToCsv(df, f)
+
+        if n != 200:
+            dfToCsv(df, f)
     else:
         avgV = df['Avg_Voltage(V)']
         avgI = df['Avg_Current(A)']
@@ -97,7 +99,7 @@ def getTimeData(avgV, avgT, dir):
 
     return startTime, stopTime
 
-def plotLemboxData(v, t, i, avgV, avgI, t_scale, dir, p_start, p_stop):
+def plotLemboxData(v, t, i, avgV, avgI, t_scale, file, p_start, p_stop):
         fig, ax = plt.subplots(2,2, sharex=True)
 
         ax[0,0].scatter(t[p_start:p_stop], v[p_start:p_stop])
@@ -119,16 +121,18 @@ def plotLemboxData(v, t, i, avgV, avgI, t_scale, dir, p_start, p_stop):
         ax[1,1].set_xlabel('Time (s)')
 
         fig.set_size_inches(30,10)
-        plt.savefig(dir + '/visualizations/lembox.png')
+        plt.savefig(file)
 
         return
 
 def drawLemboxVis(f, **kwargs):
 
+    dir = os.path.split(f)[0]
+    file = dir + '/visualizations/lembox.png'
+
     startup = False
     p_start = 0
     p_stop = -1
-    dir = os.path.split(f)[0]
 
     if 'pt_sz' in kwargs:
         pt_sz = kwargs['pt_sz']
@@ -145,6 +149,7 @@ def drawLemboxVis(f, **kwargs):
         if kwargs['startup'] == True:
             pt_sz = 0.25
             n = 200
+            file = dir + '/visualizations/shortscale_lembox.png'
             startup = True
             #p_start = int(1.95*sample_rate)
             #p_stop = int(2*sample_rate) + int(0.5*sample_rate) + int(0.1*sample_rate)
@@ -179,10 +184,10 @@ def drawLemboxVis(f, **kwargs):
 
     begin = 5* sample_rate
     l = int(10 * sample_rate)
-    #shortscaleFFT(v[begin:(begin+l)], i[begin:(begin+l)], f, sample_rate)
+    shortscaleFFT(v[begin:(begin+l)], i[begin:(begin+l)], f, sample_rate)
 
     #drawStdDev(t, i, v, dir)
-    plotLemboxData(v, t, i, avgV, avgI, t_scale, dir, p_start, p_stop)
+    plotLemboxData(v, t, i, avgV, avgI, t_scale, file, p_start, p_stop)
     
     return
 
@@ -200,8 +205,8 @@ def shortscaleFFT(v, i, f, rate):
     #mpl.rcParams['lines.markersize'] = 0.05*2
     plt.style.use('_mpl-gallery')
     fig, ax = plt.subplots(2,1)
-    ax[0].plot(freq[1:int(len(freq)/10)], np.abs(iDFT[1:int(len(freq)/10)]), 'r', alpha=.85, label='Current FFT')
-    ax[1].plot(freq[1:int(len(freq)/10)], np.abs(vDFT[1:int(len(freq)/10)]), 'b', alpha = .85, label='Voltage FFT')
+    ax[0].plot(freq[1:int(len(freq)/50)], np.abs(iDFT[1:int(len(freq)/50)]), 'r', alpha=.85, label='Current FFT')
+    ax[1].plot(freq[1:int(len(freq)/50)], np.abs(vDFT[1:int(len(freq)/50)]), 'b', alpha = .85, label='Voltage FFT')
     ax[1].set_xlabel('Frequency (Hz)')
     ax[1].set_ylabel('Voltage FFT Amplitude')
     ax[0].set_ylabel('Current FFT Amplitude')
@@ -224,7 +229,7 @@ def main():
         pass
 
     print('Generating LEMBOX data visualizations...')
-    drawLemboxVis(csv_file, startup=False)
+    drawLemboxVis(csv_file, startup=True)
     print('LEMBOX visualization complete')
     return
 

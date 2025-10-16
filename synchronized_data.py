@@ -50,8 +50,8 @@ def main():
 
     df = alignData(dir, lem, rsi)
 
-    plotPosValColormap((df['Pos_x(mm)'][:stopTime], df['Pos_y(mm)'][:stopTime], df['Pos_z(mm)'][:stopTime]), df['Avg_Current(A)'][:stopTime], 'Rolling Average Current (A)', 'Current as a function of position')
-    plotPosValColormap((df['Pos_x(mm)'][:stopTime], df['Pos_y(mm)'][:stopTime], df['Pos_z(mm)'][:stopTime]), df['Avg_Voltage(V)'][:stopTime], 'Rolling Average Voltage (V)', 'Voltage as a function of position')
+    plotPosValColormap((df['Pos_x(mm)'][:stopTime], df['Pos_y(mm)'][:stopTime], df['Pos_z(mm)'][:stopTime]), df['Avg_Current(A)'][:stopTime], 'Rolling Average Current (A)', 'Current as a function of position', 75)
+    plotPosValColormap((df['Pos_x(mm)'][:stopTime], df['Pos_y(mm)'][:stopTime], df['Pos_z(mm)'][:stopTime]), df['Avg_Voltage(V)'][:stopTime], 'Rolling Average Voltage (V)', 'Voltage as a function of position', 12, 32)
 
     plt.show()
 
