@@ -1,4 +1,4 @@
-from lembox_visualization import drawStdDev, readLemboxData, getLemboxAvgs
+from lembox_visualization import drawStdDev, getLemboxData, getTimeData
 import matplotlib.pyplot as plt
 import sys
 import os
@@ -47,10 +47,18 @@ def getStdDevs(data):
         print(dir)
         #subprocess.run([sys.executable, str(Path(__file__).parent) + '/lembox_scaling.py',
         #                                 dir + '/lembox_data.csv'], check=True)
-        t, i, v = readLemboxData(dir + '/lembox_data.csv')
-        t_scale, tAvg, iAvg, vAvg = getLemboxAvgs(v, i, t, 1000)
+        t, i, v, iAvg, vAvg = getLemboxData(dir + '/lembox_data.csv')
+
+        startTime, stopTime = getTimeData(vAvg, t, dir)
+
+        t = t[startTime:stopTime]
+        i = i[startTime:stopTime]
+        v = v[startTime:stopTime]
+        iAvg = iAvg[startTime:stopTime]
+        vAvg = vAvg[startTime:stopTime]
+
         sd_i, sd_v = drawStdDev(t, i, v, "", False)
-        sd_i_avg, sd_v_avg = drawStdDev(tAvg, iAvg, vAvg, "", False)
+        sd_i_avg, sd_v_avg = drawStdDev(t, iAvg, vAvg, "", False)
 
         stdDevs[0][0].append(sd_i)
         stdDevs[1][0].append(sd_v)
@@ -62,23 +70,82 @@ def getStdDevs(data):
 
 def plotStdDevs(stdDevs):
     n = []
+    colors = []
 
-    i = 1
-    for dev in stdDevs[0][0]:
+    for i, dev in enumerate(stdDevs[0][0]):
         n.append(i)
-        i += 1
+
+    for i in range(int(len(n)/5)):
+        colors.append('blue')
+        colors.append('green')
+        colors.append('green')
+        colors.append('purple')
+        colors.append('purple')
+
+    colors.insert(69, 'red')
 
     fig, ax = plt.subplots(2,2, sharex=True, constrained_layout=True)
-    ax[0][0].scatter(n, stdDevs[0][0])
-    ax[0][0].set_ylabel('SD I')
-    ax[1][0].scatter(n, stdDevs[1][0])
-    ax[1][0].set_ylabel('SD V')
 
-    ax[0][1].scatter(n, stdDevs[0][1])
-    ax[0][1].set_ylabel('SD I avg')
-    ax[1][1].scatter(n, stdDevs[1][1])
-    ax[1][1].set_ylabel('SD V avg')
-    fig.set_size_inches(30,10)
+    ax[0][0].scatter(n, stdDevs[0][0], c=colors)
+    ax[0][0].set_ylabel('Standard Deviation of Current (A)')
+    ax[1][0].scatter(n, stdDevs[1][0], c=colors)
+    ax[1][0].set_ylabel('Standard Deviation of Voltage (V)')
+    ax[1][0].set_xlabel('Bead Number')
+
+    ax[0][1].scatter(n, stdDevs[0][1], c=colors)
+    ax[0][1].set_ylabel('Standard Deviation of Average Current (A)')
+    ax[1][1].scatter(n, stdDevs[1][1], c=colors)
+    ax[1][1].set_ylabel('Standard Deviation of Average Voltage (V)')
+    ax[1][1].set_xlabel('Bead Number')
+    fig.set_size_inches(30,10)  
+
+    '''
+    f = []
+    a = []
+
+    for i in range(5):
+        fig, ax = plt.subplots(2,2, sharex=True, constrained_layout=True)
+
+        i_plot = []
+        i_avg_plot = []
+        v_plot = []
+        v_avg_plot = []
+        count = []
+
+        for index, sd in enumerate(stdDevs[0][0]):
+            if (index + 5 - i) % 5 == 0:
+                i_plot.append(sd)
+
+        for index, sd in enumerate(stdDevs[0][1]):
+            if (index + 5 - i) % 5 == 0:
+                i_avg_plot.append(sd)
+
+        for index, sd in enumerate(stdDevs[1][0]):
+            if (index + 5 - i) % 5 == 0:
+                v_plot.append(sd)
+
+        for index, sd in enumerate(stdDevs[1][1]):
+            if (index + 5 - i) % 5 == 0:
+                v_avg_plot.append(sd)
+
+        for index, c in enumerate(n):
+            if (index + 5 - i) % 5 == 0:
+                count.append(c + 1)
+
+        ax[0][0].scatter(count, i_plot)
+        ax[0][0].set_ylabel('SD I')
+        ax[1][0].scatter(count, v_plot)
+        ax[1][0].set_ylabel('SD V')
+
+        ax[0][1].scatter(count, i_avg_plot)
+        ax[0][1].set_ylabel('SD I avg')
+        ax[1][1].scatter(count, v_avg_plot)
+        ax[1][1].set_ylabel('SD V avg')
+        fig.set_size_inches(30,10)
+
+        f.append(fig)
+        a.append(ax)
+    '''
 
     plt.show()
 

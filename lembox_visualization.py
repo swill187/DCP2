@@ -11,7 +11,7 @@ from data_manipulation import getRollingAvg, dfHasColumn, dfAddColumn, dfToCsv
 
 sample_rate = 20000 #hz
 
-def getLemboxData(f, n = 1000, forceDataUpdate=False):
+def getLemboxData(f, n = 1000, forceDataUpdate=True):
     print('         Reading LEMBOX Data...')
 
     df = pd.read_csv(f)
@@ -61,10 +61,12 @@ def drawStdDev(t, i, v, d, draw=True):
 
         plt.savefig(d + '/visualizations/stddev.png')
 
-    print('StdDev V: ' + str(np.std(v)))
-    print('StdDev I: ' + str(np.std(i)))
+    sd_i = np.nanstd(i)
+    sd_v = np.nanstd(v)
+    print('StdDev I: ' + str(sd_i))
+    print('StdDev V: ' + str(sd_v))
 
-    return np.std(i), np.std(v)
+    return sd_i, sd_v
 
 def getTimeData(avgV, avgT, dir):
     startTime = 0
@@ -229,7 +231,7 @@ def main():
         pass
 
     print('Generating LEMBOX data visualizations...')
-    drawLemboxVis(csv_file, startup=True)
+    drawLemboxVis(csv_file, startup=False)
     print('LEMBOX visualization complete')
     return
 

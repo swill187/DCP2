@@ -15,7 +15,7 @@ def selectTopLevel():
     return path
 
 def dataSearch(f):
-    process_script = os.getcwd() + '/Data_Processing.py'
+    process_script = os.getcwd() + '/lembox_visualization.py'
 
     with os.scandir(f) as it:
         for entry in it:
@@ -23,7 +23,7 @@ def dataSearch(f):
                 print(entry.name)
                 if entry.name.startswith('data_collection_'):
                     print('Found data folder ' + entry.path)
-                    subprocess.run([sys.executable, process_script, entry.path], check=True)
+                    subprocess.run([sys.executable, process_script, entry.path + '/lembox_data.csv'], check=True)
                 else:
                     dataSearch(entry.path)
 
