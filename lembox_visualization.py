@@ -168,8 +168,8 @@ def drawLemboxVis(f, **kwargs):
 
     startTime, stopTime = getTimeData(avgV, t, dir)
 
-    #startTime -= 2*sample_rate      # set observed window to welding time +- 2 seconds
-    #stopTime += 2*sample_rate
+    startTime -= 2*sample_rate      # set observed window to welding time +- 2 seconds
+    stopTime += 2*sample_rate
     if startTime < 0:
         startTime = 0
     if stopTime > len(avgV):
