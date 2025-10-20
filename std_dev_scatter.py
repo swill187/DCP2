@@ -83,18 +83,44 @@ def plotStdDevs(stdDevs):
         colors.append('purple')
 
     colors.insert(69, 'red')
+    
+    plotDevs = [[[], []], [[], []]]
+    nPlot =[]
+    cPlot = []
+    
+    for i, sd in enumerate(stdDevs[0][0]):
+        if (i + 5) % 5 != 0 and i < 68:
+            plotDevs[0][0].append(stdDevs[0][0][i])
+            plotDevs[0][1].append(stdDevs[0][1][i])
+            plotDevs[1][0].append(stdDevs[1][0][i])
+            plotDevs[1][1].append(stdDevs[1][1][i])
+            
+            nPlot.append(n[i])
+            cPlot.append(colors[i])
+            
+        elif (i + 5 - 1) % 5 != 0 and i >= 68 and i < len(stdDevs[0][0]):
+            plotDevs[0][0].append(stdDevs[0][0][i])
+            plotDevs[0][1].append(stdDevs[0][1][i])
+            plotDevs[1][0].append(stdDevs[1][0][i])
+            plotDevs[1][1].append(stdDevs[1][1][i])
+            
+            nPlot.append(n[i])
+            cPlot.append(colors[i])
+            
+        else:
+            print(i)
 
     fig, ax = plt.subplots(2,2, sharex=True, constrained_layout=True)
 
-    ax[0][0].scatter(n, stdDevs[0][0], c=colors)
+    ax[0][0].scatter(nPlot, plotDevs[0][0], c=cPlot)
     ax[0][0].set_ylabel('Standard Deviation of Current (A)')
-    ax[1][0].scatter(n, stdDevs[1][0], c=colors)
+    ax[1][0].scatter(nPlot, plotDevs[1][0], c=cPlot)
     ax[1][0].set_ylabel('Standard Deviation of Voltage (V)')
     ax[1][0].set_xlabel('Bead Number')
 
-    ax[0][1].scatter(n, stdDevs[0][1], c=colors)
+    ax[0][1].scatter(nPlot, plotDevs[0][1], c=cPlot)
     ax[0][1].set_ylabel('Standard Deviation of Average Current (A)')
-    ax[1][1].scatter(n, stdDevs[1][1], c=colors)
+    ax[1][1].scatter(nPlot, plotDevs[1][1], c=cPlot)
     ax[1][1].set_ylabel('Standard Deviation of Average Voltage (V)')
     ax[1][1].set_xlabel('Bead Number')
     fig.set_size_inches(30,10)  

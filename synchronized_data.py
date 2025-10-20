@@ -42,7 +42,7 @@ def main():
     lem_time, curr, volt, avgI, avgV = getLemboxData(dir + '/lembox_data.csv')
     startTime, stopTime = getTimeData(avgV, lem_time, dir)
 
-    #startTime /= 20000; stopTime /= 20000
+    startTime += 40000 ; stopTime -= 40000
     lem = (lem_time, curr, avgI, volt, avgV)
 
     pos, vel, rsi_time = readRSI(dir + '/robot_data.csv', True)
@@ -50,9 +50,9 @@ def main():
 
     df = alignData(dir, lem, rsi)
 
-    plotPosValColormap((df['Pos_x(mm)'][:stopTime], df['Pos_y(mm)'][:stopTime], df['Pos_z(mm)'][:stopTime]), df['Avg_Current(A)'][:stopTime], 'Rolling Average Current (A)', 'Current as a function of position', 75)
-    plotPosValColormap((df['Pos_x(mm)'][:stopTime], df['Pos_y(mm)'][:stopTime], df['Pos_z(mm)'][:stopTime]), df['Avg_Voltage(V)'][:stopTime], 'Rolling Average Voltage (V)', 'Voltage as a function of position', 12, 32)
-
-    plt.show()
+    plotPosValColormap((df['Pos_x(mm)'][startTime:startTime + int(5.5 * 20000)], df['Pos_y(mm)'][startTime:startTime + int(5.5 * 20000)], df['Pos_z(mm)'][startTime:startTime + int(5.5 * 20000)]), df['Avg_Current(A)'][startTime:startTime + int(5.5 * 20000)], 'Rolling Average Current (A)', 'Current as a function of position', 75)
+    plt.savefig(dir + '/visualizations/current_3d_short.png', bbox_inches='tight')
+    plotPosValColormap((df['Pos_x(mm)'][startTime:startTime + int(5.5 * 20000)], df['Pos_y(mm)'][startTime:startTime + int(5.5 * 20000)], df['Pos_z(mm)'][startTime:startTime + int(5.5 * 20000)]), df['Avg_Voltage(V)'][startTime:startTime + int(5.5 * 20000)], 'Rolling Average Voltage (V)', 'Voltage as a function of position', 14)
+    plt.savefig(dir + '/visualizations/voltage_3d_short.png', bbox_inches='tight')
 
 if __name__ == '__main__': main()
