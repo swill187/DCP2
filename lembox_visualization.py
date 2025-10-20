@@ -75,14 +75,17 @@ def getTimeData(avgV, avgT, dir):
             break
         startTime += 1
 
-    stopTime = 0
+    stopIndex = 0
     while True:
-        if stopTime < startTime:
-            stopTime += 1
+        if stopIndex < startTime:
+            stopIndex += 1
             continue
-        elif avgV[stopTime] < 1 or stopTime >= len(avgV) - 1:
+        elif avgV[stopIndex - 1] >  1 and avgV[stopIndex] < 1:
+            stopTime = stopIndex
+        if stopIndex >= len(avgV) - 1:
             break
-        stopTime += 1
+            
+        stopIndex += 1
 
     if not os.access(dir +'/params.csv', os.R_OK):
         df = pd.DataFrame()
@@ -165,8 +168,8 @@ def drawLemboxVis(f, **kwargs):
 
     startTime, stopTime = getTimeData(avgV, t, dir)
 
-    startTime -= 2*sample_rate      # set observed window to welding time +- 2 seconds
-    stopTime += 2*sample_rate
+    #startTime -= 2*sample_rate      # set observed window to welding time +- 2 seconds
+    #stopTime += 2*sample_rate
     if startTime < 0:
         startTime = 0
     if stopTime > len(avgV):
