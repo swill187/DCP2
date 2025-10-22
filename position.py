@@ -106,7 +106,7 @@ def plotPosValColormap(pos, val, val_id='', title='', cmin = 0, cmax = -1, spars
 
     px = 1/plt.rcParams['figure.dpi']
     fig, ax = plt.subplots(subplot_kw={'projection': '3d'}, figsize=(1920*px,1080*px), constrained_layout=False)
-    scatter = ax.scatter(pos_sparse[0],pos_sparse[1],pos_sparse[2], c=val_sparse, cmap='inferno', vmin=cmin, vmax=cmax, s=50)
+    scatter = ax.scatter(pos_sparse[0],pos_sparse[1],pos_sparse[2], c=val_sparse, cmap='inferno', vmin=cmin, vmax=cmax, s=0.05)
     
     ax.set_zlim(190,196)
     ax.set_box_aspect(aspect=(np.nanmax(pos_sparse[0]) - np.nanmin(pos_sparse[0]), np.nanmax(pos_sparse[1]) - np.nanmin(pos_sparse[1]), np.nanmax(ax.get_zlim()) - np.nanmin(ax.get_zlim())))
