@@ -39,6 +39,27 @@ def getRollingAvg(arr, avgLen = 1000):
 
     return avg
 
+# takes an array and a limit value and returns the start:stop indices that bound  (array's value) > testLimit
+def getStartStop(testVal, testLimit = 1):
+
+    startTime = 0
+    for t, v in enumerate(testVal):
+        if v > testLimit: 
+            startTime = t
+            break
+
+    stopTime = 0
+    for t, v in enumerate(testVal):
+        if t < startTime:
+            continue
+
+        if testVal[t - 1] >=  testLimit and v < testLimit:
+            stopTime = t
+
+    if stopTime == 0: stopTime = len(testVal)
+
+    return startTime, stopTime
+
 def getStdDev(arr):
     return np.std(arr)
 

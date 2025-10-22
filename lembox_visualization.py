@@ -4,14 +4,12 @@ import sys
 import os
 import pandas            as pd
 import numpy             as np
-import librosa
-import math
 
-from data_manipulation import getRollingAvg, dfHasColumn, dfAddColumn, dfToCsv
+from data_manipulation import getRollingAvg, getStartStop, dfHasColumn, dfAddColumn, dfToCsv
 
 sample_rate = 20000 #hz
 
-def getLemboxData(f, n = 1000, forceDataUpdate=True):
+def getLemboxData(f, n = 1000, forceDataUpdate=False):
     print('         Reading LEMBOX Data...')
 
     df = pd.read_csv(f)
@@ -67,42 +65,6 @@ def drawStdDev(t, i, v, d, draw=True):
     print('StdDev V: ' + str(sd_v))
 
     return sd_i, sd_v
-
-def getTimeData(avgV, avgT, dir):
-    startTime = 0
-    while True:
-        if avgV[startTime] > 1:
-            break
-        startTime += 1
-
-    stopIndex = 0
-    while True:
-        if stopIndex < startTime:
-            stopIndex += 1
-            continue
-        elif avgV[stopIndex - 1] >  1 and avgV[stopIndex] < 1:
-            stopTime = stopIndex
-        if stopIndex >= len(avgV) - 1:
-            break
-            
-        stopIndex += 1
-
-    if not os.access(dir +'/params.csv', os.R_OK):
-        df = pd.DataFrame()
-        dfToCsv(df, dir + '/params.csv')
-
-    try:
-        df = pd.read_csv(dir + '/params.csv')
-    except pd.errors.EmptyDataError:
-        df = pd.DataFrame()
-
-    if not dfHasColumn(df, 'Weld_Start_Time(s)'):
-        dfAddColumn(df, startTime/sample_rate, 'Weld_Start_Time(s)')
-        dfAddColumn(df, stopTime/sample_rate, 'Weld_Stop_Time(s)')
-
-        dfToCsv(df, dir + '/params.csv')
-
-    return startTime, stopTime
 
 def plotLemboxData(v, t, i, avgV, avgI, t_scale, file, p_start, p_stop):
         fig, ax = plt.subplots(2,2, sharex=True)
@@ -166,7 +128,7 @@ def drawLemboxVis(f, **kwargs):
     t_scale = t[int(len(t)/2) + n] - t[int(len(t)/2)]        # compute time length of rolling average
     t_scale = f"{t_scale:.5f}"
 
-    startTime, stopTime = getTimeData(avgV, t, dir)
+    startTime, stopTime = getStartStop(avgV, 1)
 
     startTime -= 2*sample_rate      # set observed window to welding time +- 2 seconds
     stopTime += 2*sample_rate
