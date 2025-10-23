@@ -2,7 +2,6 @@ import pandas as pd
 import os
 import sys
 import numpy as np
-import datetime
 from data_manipulation import csvHasColumn
 
 # Get the directory where the script is located
@@ -14,9 +13,49 @@ if len(sys.argv) > 1:
 else:
     input_file = os.path.join(script_dir, 'lembox_data.csv')
 
+if not os.access(input_file, os.R_OK):
+    print(f'Error: {input_file} is not a valid lembox data file.\n')
+    sys.exit(1)
+
 print(f"Reading and updating file: {input_file}")
 
-# added explicit dtype definitions to prevent dtypeWarning message. skipfooter avoids type error caused by debugging messages appended to data. python engine is required to use the skipfooter option.
+# Check raw data file for 'Samples' string. This indicates that the LEMBOX data recording function has injected a stdout 
+# string into the data file (known issue). To resolve, we remove the lines before & after the bad line, + the bad line itself (minimal data loss)
+try:
+    with open(input_file, 'r', newline='\r\n') as f:
+        rm = []
+        r = f.readlines()
+
+        for i, line in enumerate(r[1:]):
+            if 'Sample' in line:
+                print(line)
+                rm.append(i + 1)
+
+        print(r[-5:])
+        print()
+
+        rm.sort(reverse=True)
+        for i in rm:
+
+            print(i - len(r))
+            print(r[i])
+
+            if (i + 1) < len(r): r.pop(i + 1)
+            r.pop(i)
+            if (i - 1) > 0: r.pop(i - 1)
+
+        print()
+        print(r[-5:])
+
+    with open(input_file, 'w') as f:
+        f.writelines(r)
+
+except FileNotFoundError:
+    print(f'{input_file} does not exist.')
+    sys.exit(1)
+
+# added explicit dtype definitions to prevent dtypeWarning message. skipfooter avoids type error caused by debugging messages appended
+# to data. python engine is required to use the skipfooter option.
 col_types = {
     'Sample': np.int32,
     'PerfTime(s)': np.float64,
@@ -29,7 +68,7 @@ col_types = {
 
 # Read, scale, and update the data in place
 if not csvHasColumn(input_file, 'Scaled_Voltage(V)'):
-    df = pd.read_csv(input_file, dtype=col_types, skipfooter=2, engine='python')
+    df = pd.read_csv(input_file, dtype=col_types, engine='python')
     df['Scaled_Voltage(V)'] = df['Voltage(V)'] * 10
     df['Scaled_Current(A)'] = df['Current(A)'] * 100
 

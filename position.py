@@ -6,18 +6,27 @@ import numpy as np
 from data_manipulation import dfHasColumn, dfAddColumn, dfToCsv
 import matplotlib.pyplot as plt
 
-RSI_rate = 250
 plt.style.use('_mpl-gallery')
 #plt.rcParams['figure.tight_layout.use'] = True
 
-def readRSI(f, window = int(0.25*RSI_rate), forceDataUpdate = False):
+def readRSI(f, window = int(0.25*250), forceDataUpdate = False):
     print('         Reading RSI data...')
+
+    RSI_rate = 250
 
     df = pd.read_csv(f)
 
-    if df['RelativeTime'][10250] - df['RelativeTime'][10000] - 0.5 < 0:
-        RSI_rate = 1000
-        window = int(0.25*RSI_rate)
+    possible_error_rates = [1000, 500]
+
+    for r in possible_error_rates:
+        cur_rate_time = df['RelativeTime'][int(len(df['RelativeTime'])/2) + RSI_rate] - df['RelativeTime'][int(len(df['RelativeTime'])/2)]
+        new_rate_time = df['RelativeTime'][int(len(df['RelativeTime'])/2) + r] - df['RelativeTime'][int(len(df['RelativeTime'])/2)]
+
+        print(r)
+
+        if abs(new_rate_time - 1) < abs(cur_rate_time - 1):
+            RSI_rate = r
+            window = int(0.25*RSI_rate)
 
     pos_x = df['RIst_X']
     pos_y = df['RIst_Y']
@@ -37,7 +46,7 @@ def readRSI(f, window = int(0.25*RSI_rate), forceDataUpdate = False):
             ti.append(t)
             t += r
 
-        print(ti[-1])
+        #print(ti[-1])
         dfAddColumn(df, ti, 'Interpolated_Time(s)')
         dfToCsv(df, f)
 
@@ -84,7 +93,7 @@ def plotPos(pos):
     plt.show()
 
 #needs conversion to **kwargs
-def plotPosValColormap(pos, val, val_id='', title='', cmin = 0, cmax = -1, sparsity = 1000):
+def plotPosValColormap(pos, val, val_id='', title='', cmin = 0, cmax = -1, sparsity = 100):
     print('         Plotting position-wise colormap')
 
     pos_x = pos[0].to_numpy()
@@ -106,10 +115,11 @@ def plotPosValColormap(pos, val, val_id='', title='', cmin = 0, cmax = -1, spars
 
     px = 1/plt.rcParams['figure.dpi']
     fig, ax = plt.subplots(subplot_kw={'projection': '3d'}, figsize=(1920*px,1080*px), constrained_layout=False)
-    scatter = ax.scatter(pos_sparse[0],pos_sparse[1],pos_sparse[2], c=val_sparse, cmap='inferno', vmin=cmin, vmax=cmax, s=0.05)
+    scatter = ax.scatter(pos_sparse[0],pos_sparse[1],pos_sparse[2], c=val_sparse, cmap='inferno', vmin=cmin, vmax=cmax, s=25)
     
     #ax.set_zlim(190,196)
-    ax.set_box_aspect(aspect=(np.nanmax(pos_sparse[0]) - np.nanmin(pos_sparse[0]), np.nanmax(pos_sparse[1]) - np.nanmin(pos_sparse[1]), np.nanmax(ax.get_zlim()) - np.nanmin(ax.get_zlim())))
+    #ax.set_box_aspect(aspect=(np.nanmax(pos_sparse[0]) - np.nanmin(pos_sparse[0]), np.nanmax(pos_sparse[1]) - np.nanmin(pos_sparse[1]), np.nanmax(ax.get_zlim()) - np.nanmin(ax.get_zlim())))
+    ax.set_box_aspect(aspect=(np.nanmax(pos_sparse[0]) - np.nanmin(pos_sparse[0]), np.nanmax(pos_sparse[1]) - np.nanmin(pos_sparse[1]), np.nanmax(pos_sparse[2]) - np.nanmin(pos_sparse[2])))
     ax.disable_mouse_rotation()
 
     ax.set_xlabel('X (mm)', labelpad=25)

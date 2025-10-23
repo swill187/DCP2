@@ -4,16 +4,17 @@ from tkinter import filedialog
 from lembox_visualization import getLemboxData
 from position import readRSI, plotPosValColormap
 from audio_time_scale import mic_time
-from data_manipulation import dfToCsv, getStartStop
+from data_manipulation import dfToCsv, getStartStop, dfHasColumn, getRollingAvg
 import os
 import matplotlib.pyplot as plt
+import numpy as np
 
-sample_rates = {'lembox':20000, 'mic':48000, 'rsi':250}                         # Hz
+sample_rates = {'lembox':20000, 'mic':48000, 'rsi':250}                         # Hz                        (rsi rate may present as 1000 Hz, known bug)
+expected_columns = ['Current(A)', 'Pos_x(mm)', 'Amplitude']                     # 1 per raw data *.csv
 
-expected_columns = ['Current(A)', 'Pos_x(mm)']                                  # 1 per raw data *.csv
 
-def alignData(dir, lem, rsi, mic, forceDataUpdate=False):
-    print('         Aligning data...')
+def alignData(dir, forceDataUpdate=False):
+    print(f'    Aligning data for {dir}...')
 
     noAlignment = not os.access(dir +'/aligned_data.csv', os.R_OK)              # does aligned_data.csv exist?
 
@@ -22,9 +23,18 @@ def alignData(dir, lem, rsi, mic, forceDataUpdate=False):
 
         incompAlignment = False
         for c in expected_columns:
-            if not df[c]: incompAlignment = True
+            if not dfHasColumn(df, c): incompAlignment = True
 
     if noAlignment or incompAlignment or forceDataUpdate:                       # if (for any reason) aligned_data.csv is incomplete, rebuild it
+
+        lem_time, curr, volt, avgI, avgV = getLemboxData(dir + '/lembox_data.csv', 1000, forceDataUpdate)
+        lem = (lem_time, curr, avgI, volt, avgV)
+
+        pos, vel, rsi_time = readRSI(dir + '/robot_data.csv', 1, forceDataUpdate)
+        rsi = (pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], vel[3], rsi_time)
+    
+        mic_t, mic_A = mic_time(dir + '/microphone_data.csv', dir + '/microphone_data_aligned.csv', sample_rate = 48000)
+        mic = (mic_t, mic_A)
 
         aligned_data = ()
         for i in range(len(rsi) - 1): aligned_data += ([],)                     # size aligned_data to size(number of data columns in non-basis timescale)
@@ -61,28 +71,19 @@ def main():
         dir = filedialog.askdirectory()
     else:
         dir = sys.argv[1]
+    
+    df = alignData(dir, True)
+    
+    startTime, stopTime = getStartStop(df['Avg_Voltage(V)'], 1)
+    #startTime += 2 * sample_rates['mic'] ; stopTime -= 2 * sample_rates['mic']
 
-    lem_time, curr, volt, avgI, avgV = getLemboxData(dir + '/lembox_data.csv')
-    
-    lem = (lem_time, curr, avgI, volt, avgV)
-
-    pos, vel, rsi_time = readRSI(dir + '/robot_data.csv', True)
-    rsi = (pos[0], pos[1], pos[2], vel[0], vel[1], vel[2], vel[3], rsi_time)
-    
-    mic_t, mic_A = mic_time(dir + '/microphone_data.csv', dir + '/microphone_data_aligned.csv', sample_rate = 48000)
-    mic = (mic_t,mic_A)
-    
-    df = alignData(dir, lem, rsi, mic)
-    
-    startTime, stopTime = getStartStop(avgV, 1)
-    startTime += 2 * sample_rates['lembox'] ; stopTime -= 2 * sample_rates['lembox']
-    
-
-    plotPosValColormap((df['Pos_x(mm)'], df['Pos_y(mm)'], df['Pos_z(mm)']), df['Avg_Current(A)'], 'Rolling Average Current (A)', 'Current as a function of position')
+    plotPosValColormap((df['Pos_x(mm)'][startTime:stopTime], df['Pos_y(mm)'][startTime:stopTime], df['Pos_z(mm)'][startTime:stopTime]), df['Avg_Current(A)'][startTime:stopTime], 'Rolling Average Current (A)', 'Current as a function of position')
     plt.savefig(dir + '/visualizations/current_3d.png', bbox_inches='tight')
-    plotPosValColormap((df['Pos_x(mm)'][:stopTime], df['Pos_y(mm)'][:stopTime], df['Pos_z(mm)'][:stopTime]), df['Avg_Voltage(V)'][:stopTime], 'Rolling Average Voltage (V)', 'Voltage as a function of position')
+    plotPosValColormap((df['Pos_x(mm)'][startTime:stopTime], df['Pos_y(mm)'][startTime:stopTime], df['Pos_z(mm)'][startTime:stopTime]), df['Avg_Voltage(V)'][startTime:stopTime], 'Rolling Average Voltage (V)', 'Voltage as a function of position')
     plt.savefig(dir + '/visualizations/voltage_3d.png', bbox_inches='tight')
-    plotPosValColormap((df['Pos_x(mm)'], df['Pos_y(mm)'], df['Pos_z(mm)']), abs(df['Amplitude']), 'Amplitude', 'Amplitude as a function of position')
+    plotPosValColormap((df['Pos_x(mm)'][startTime + int(0.05 * sample_rates['mic']):stopTime], df['Pos_y(mm)'][startTime + int(0.05 * sample_rates['mic']):stopTime], df['Pos_z(mm)'][startTime + int(0.05 * sample_rates['mic']):stopTime]), pd.Series(getRollingAvg((df['Amplitude'][startTime:stopTime]), int(0.05 * sample_rates['mic']))), 'Amplitude', 'Amplitude as a function of position', 0, 0.003)
     plt.savefig(dir + '/visualizations/amplitude_3d.png', bbox_inches='tight')
+
+    print(np.nanmax(getRollingAvg(df['Amplitude'][startTime:stopTime], int(0.05 * sample_rates['mic']))))
     
 if __name__ == '__main__': main()

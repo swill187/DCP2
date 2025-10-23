@@ -5,6 +5,7 @@ import os
 import sys
 
 def mic_time(csv_filename, aligned_filename, sample_rate=48000):
+    print('         Reading microphone data...')
     try:
         # Load CSV, skipping header row if needed
         df = pd.read_csv(csv_filename, skiprows=1)
@@ -21,7 +22,7 @@ def mic_time(csv_filename, aligned_filename, sample_rate=48000):
 
         columns_to_save = ['Time', 'Amplitude']
         mic= df[columns_to_save]
-        print(mic) 
+
         # Save new CSV
         mic.to_csv(aligned_filename, index=False)
         print(f"\nSaved to: {aligned_filename}")
@@ -29,6 +30,7 @@ def mic_time(csv_filename, aligned_filename, sample_rate=48000):
     except Exception as e:
         print(f"Error: {e}")
     return mic['Time'].to_numpy(), mic['Amplitude'].to_numpy()
+
 def main():
     if len(sys.argv) < 2:
         print("Usage: python script.py <path_to_csv>")
