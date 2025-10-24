@@ -4,8 +4,10 @@ import sys
 import os
 import pandas            as pd
 import numpy             as np
+import librosa
+from tkinter             import filedialog
 
-from data_manipulation import getRollingAvg, getStartStop, dfHasColumn, dfAddColumn, dfToCsv
+from data_manipulation import getRollingAvg, getRollingStdDev, getRollingSkew, getRollingKurtosis, getStartStop, dfHasColumn, dfAddColumn, dfToCsv
 
 sample_rate = 20000 #hz
 
@@ -39,32 +41,50 @@ def getLemboxData(f, n = 1000, forceDataUpdate=False):
 
     return  time, df['Scaled_Current(A)'], df['Scaled_Voltage(V)'], avgI, avgV
 
-def drawStdDev(t, i, v, d, draw=True):
-    sd_scale = 20000
+def drawStats(t, i, v, dir, scale=sample_rate):
 
-    if draw:
-        sd_i = []
-        sd_v = []
-        for a in range(len(t[sd_scale - 1:])):
-            sd_i.append(np.std(i[a: a + sd_scale - 1]))
-            sd_v.append(np.std(v[a: a + sd_scale - 1]))
+    if type(t) != list: t = t.tolist()
+    if type(i) != list: i = i.tolist()
+    if type(v) != list: v = v.tolist()
 
-        fig, ax = plt.subplots(2,1, sharex=True)
-        ax[0].scatter(t[sd_scale - 1:], sd_v)
-        ax[0].set_ylabel('Voltage Std Dev')
-        ax[1].scatter(t[sd_scale - 1:], sd_i)
-        ax[1].set_ylabel('Current Std Dev')
-        ax[1].set_xlabel('Time (s)')
-        fig.set_size_inches(15,10)
+    print('             Getting Rolling StdDevs...')
+    sd_i = getRollingStdDev(i, scale)
+    sd_v = getRollingStdDev(v, scale)
 
-        plt.savefig(d + '/visualizations/stddev.png')
+    print('             Getting Rolling Skews...')
+    skew_i = getRollingSkew(i, scale)
+    skew_v = getRollingSkew(v, scale)
 
-    sd_i = np.nanstd(i)
-    sd_v = np.nanstd(v)
-    print('StdDev I: ' + str(sd_i))
-    print('StdDev V: ' + str(sd_v))
+    print('             Getting Rolling Kurtosis...')
+    k_i = getRollingKurtosis(i, scale)
+    k_v = getRollingKurtosis(v, scale)
 
-    return sd_i, sd_v
+    t = t[scale-1:]
+    i = i[scale-1:]
+    v = v[scale-1:]
+
+    data = [[v, sd_v, skew_v, k_v], [i, sd_i, skew_i, k_i]]
+    label = [['Voltage (V)', 'Std Dev Voltage (V)', 'Skew Voltage', 'Kurtosis Voltage'], ['Current (A)', 'Std Dev Current (A)', 'Skew Current', 'Kurtosis Current']]
+
+    fig, ax = plt.subplots(4,2, sharex=True)
+
+    for i, typ in enumerate(data):
+        for j, d in enumerate(typ):
+            ax[j][i].scatter(t, d)
+
+        for j, l in enumerate(label[i]):
+            ax[j][i].set_ylabel(l)
+
+    
+    for a in ax[-1]: a.set_xlabel('Time (s)')
+    fig.set_size_inches(30,10)
+    fig.suptitle('Rolling Stats')
+    plt.show()
+    #plt.savefig(dir + '/visualizations/stats.png')
+
+    print('             Stats Complete!')
+
+    return
 
 def plotLemboxData(v, t, i, avgV, avgI, t_scale, file, p_start, p_stop):
         fig, ax = plt.subplots(2,2, sharex=True)
@@ -123,6 +143,7 @@ def drawLemboxVis(f, **kwargs):
             p_start = int(10*sample_rate)
             p_stop = int(10*sample_rate) + int(0.6*sample_rate)
 
+
     t, i, v, avgI, avgV = getLemboxData(f, n)
 
     t_scale = t[int(len(t)/2) + n] - t[int(len(t)/2)]        # compute time length of rolling average
@@ -153,7 +174,8 @@ def drawLemboxVis(f, **kwargs):
     l = int(10 * sample_rate)
     shortscaleFFT(v[begin:(begin+l)], i[begin:(begin+l)], f, sample_rate)
 
-    #drawStdDev(t, i, v, dir)
+    #drawStats(np.linspace(0., 10., 1000), np.random.rand(1000), np.random.rand(1000), dir, 10)
+    drawStats(t, i, v, dir, 20000)
     plotLemboxData(v, t, i, avgV, avgI, t_scale, file, p_start, p_stop)
     
     return
@@ -182,12 +204,16 @@ def shortscaleFFT(v, i, f, rate):
     
     return
 
+def lemboxSpectrogram(v, i, t, d):
+
+    return
+
 def main():
     if len(sys.argv) != 2:
-        print('Usage: python lembox_visualization.py <lembox_csv_file>')
-        sys.exit(1)
-
-    csv_file = sys.argv[1]
+        csv_file = filedialog.askopenfilename()
+    else:
+        csv_file = sys.argv[1]
+    
     dir = os.path.split(csv_file)[0]
 
     try:

@@ -1,10 +1,11 @@
-from lembox_visualization import drawStdDev, getLemboxData, getTimeData
+from lembox_visualization import getLemboxData, getTimeData
 import matplotlib.pyplot as plt
 import sys
 import os
 import subprocess
 from pathlib import Path
 from tkinter import filedialog
+import numpy as np
 
 def selectParent():
     if len(sys.argv) == 2:
@@ -57,14 +58,14 @@ def getStdDevs(data):
         iAvg = iAvg[startTime:stopTime]
         vAvg = vAvg[startTime:stopTime]
 
-        sd_i, sd_v = drawStdDev(t, i, v, "", False)
-        sd_i_avg, sd_v_avg = drawStdDev(t, iAvg, vAvg, "", False)
+        #sd_i, sd_v = drawStdDev(t, i, v, "", False)
+        #sd_i_avg, sd_v_avg = drawStdDev(t, iAvg, vAvg, "", False)
 
-        stdDevs[0][0].append(sd_i)
-        stdDevs[1][0].append(sd_v)
+        stdDevs[0][0].append(np.nanstd(sd_i))
+        stdDevs[0][0].append(np.nanstd(sd_v))
 
-        stdDevs[0][1].append(sd_i_avg)
-        stdDevs[1][1].append(sd_v_avg)
+        stdDevs[0][0].append(np.nanstd(sd_i_avg))
+        stdDevs[0][0].append(np.nanstd(sd_v_avg))
 
     return stdDevs
 

@@ -22,8 +22,6 @@ def readRSI(f, window = int(0.25*250), forceDataUpdate = False):
         cur_rate_time = df['RelativeTime'][int(len(df['RelativeTime'])/2) + RSI_rate] - df['RelativeTime'][int(len(df['RelativeTime'])/2)]
         new_rate_time = df['RelativeTime'][int(len(df['RelativeTime'])/2) + r] - df['RelativeTime'][int(len(df['RelativeTime'])/2)]
 
-        print(r)
-
         if abs(new_rate_time - 1) < abs(cur_rate_time - 1):
             RSI_rate = r
             window = int(0.25*RSI_rate)
