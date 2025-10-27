@@ -11,15 +11,14 @@ def DWT(f):
     df = pd.read_csv(f)
     Amp = df['Amplitude']
     Time = df['time']
-    print(Amp)
+   
     DWTcoeffs = pywt.wavedec(Amp, 'db3',)
     DWTcoeffs[-1] = np.zeros_like(DWTcoeffs[-1]) # rough version of denosing which sets the last two detal coeffs. to zero
     DWTcoeffs[-2] = np.zeros_like(DWTcoeffs[-2])
   
    
-    print(DWTcoeffs)
     filtered_data_dwt=pywt.waverec(DWTcoeffs,'db3',mode='symmetric',axis=-1)
-    print(filtered_data_dwt)
+   
 
     sample_rate = 48000
     
