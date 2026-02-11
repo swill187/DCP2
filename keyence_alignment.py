@@ -10,7 +10,7 @@ def readKeyenceData(filename, stop_height):
     
     # find the measured center point of stop crater
     stop_index = 0
-    while df['Z(mm)'][stop_index] != stop_height:
+    while df['Z(mm)'][stop_index] < stop_height:
         stop_index += 1
     
     # find a point 4 inches away from the stop point (assumed starting point)
@@ -33,10 +33,10 @@ def readKeyenceData(filename, stop_height):
     return df
 
 def alignProfileData():
-    keyence_file = "E:/mason's stuff/011925 Keyence 4 Jared/bead4.csv"
-    bead_dat_file = "F:/410SS DATA/modified datasets/Day_2/data_collection_20251113_155758/aligned_data.csv"
+    keyence_file = "D:/mason's stuff/012026 Updated Scans/bead3.csv"
+    bead_dat_file = "E:/410SS DATA/modified datasets/Day_2/data_collection_20251113_154352/aligned_data.csv"
     
-    profile = readKeyenceData(keyence_file, 1.525)
+    profile = readKeyenceData(keyence_file, 1.454)
     bead    = pd.read_csv(bead_dat_file)
     
     weld_start, weld_stop = getStartStop(bead['Avg_Voltage(V)'], 1)
@@ -61,11 +61,13 @@ def alignProfileData():
         
     bead = bead.dropna(subset=['profile_x(mm)', 'profile_z(mm)'])
     
-    dfToCsv(bead, "F:/410SS DATA/profile_datasets/bead4.csv")
+    dfToCsv(bead, "E:/410SS DATA/profile_datasets/012026/bead3.csv")
 
 def drawVis():
-    bead = pd.read_csv("F:/410SS DATA/profile_datasets/bead3.csv")
-    
+    bead = pd.read_csv("E:/410SS DATA/profile_datasets/012026/bead1.csv")
+
+    bead = bead[(bead['Pos_x(mm)'] > bead['Pos_x(mm)'][0] + 12.7) & (bead['Pos_x(mm)'] < bead['Pos_x(mm)'].iloc[-1] - 12.7)]              # window to exclude beginning and ending 0.5"
+
     fig1, ax1 = plt.subplots(2,1, layout='constrained')
     ax1[0].scatter(bead['profile_z(mm)'], bead['Avg_Voltage(V)'], s=0.000005)
     ax1[0].set_ylabel('Average Voltage (V)')
@@ -76,7 +78,7 @@ def drawVis():
     fig1.suptitle('Arc Data vs Bead Height')
     
     fig2, ax2 = plt.subplots(layout='constrained')
-    ax2.scatter(bead['profile_x(mm)'], bead['profile_z(mm)'], s=0.005)
+    ax2.plot(bead['profile_x(mm)'], bead['profile_z(mm)'], ms=0.005)
     ax2.set_ylim(bottom=0)
     ax2.set_xlabel('X Position Along Bead (mm)')
     ax2.set_ylabel('Bead Profile Height (mm)')
@@ -85,4 +87,5 @@ def drawVis():
 
 if __name__ == '__main__':
 
+    #alignProfileData()
     drawVis()

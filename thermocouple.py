@@ -13,7 +13,28 @@ def getThermocoupleData(d, filename='thermocouple_data.csv'):
 
     return df
 
+def calibrateThermocoupleData(data):
+    gains   = [1.032326969, 1.040573875, 1.052003112, 1.043669245]
+    offsets = [-4.295361687, -4.433140888, -5.683631461, -4.651952667]
+
+    cal_data = pd.DataFrame()
+
+    for i in range(4):
+        channel = 'Channel ' + str(i) + ' (°C)'
+        tcpl = data[channel].tolist()
+
+        for j, t in enumerate(tcpl):
+            tcpl[j] = (t*gains[i]) + offsets[i]
+        
+        cal_data[channel] = pd.Series(tcpl)
+
+    return cal_data
+
+
+
 def plotThermocouple(df):
+    df_calibrated = calibrateThermocoupleData(df)
+
     t = df['Timestamp']
 
     timestamps = []
@@ -31,23 +52,32 @@ def plotThermocouple(df):
         timestamps[i] = t - startTime
 
     temp = []
+    cal_temp = []
     for i in range(4):
         channel = 'Channel ' + str(i) + ' (°C)'
         temp.append(df[channel])
+        cal_temp.append(df_calibrated[channel])
 
-    fig, ax = plt.subplots(layout='constrained')
+    fig, ax = plt.subplots(2,1, layout='constrained', sharex=True, sharey=True)
 
     colors = ['#0d6cbf', '#9d16db','#db2a16', '#16db19']
 
     for i in range(4):
-        ax.scatter(timestamps, temp[i], s=2, c=colors[i], label='Channel ' + str(i))
+        ax[0].scatter(timestamps, temp[i], s=2, c=colors[i], label='Channel ' + str(i))
+        ax[1].scatter(timestamps, cal_temp[i], s=2, c=colors[i], label='Channel ' + str(i))
 
-    ax.set_ylabel('Temperature (°C)')
-    ax.set_xlabel('Time (s)')
-    ax.legend(markerscale=3)
+    ax[0].set_ylabel('Temperature (°C)')
+    ax[0].set_title('Uncalibrated Temperature')
+    ax[0].legend(markerscale=3)
+    ax[0].grid(True)
+
+    ax[1].set_ylabel('Temperature (°C)')
+    ax[1].set_xlabel('Time (s)')
+    ax[1].set_title('Calibrated Temperature')
+    ax[1].legend(markerscale=3)
+    ax[1].grid(True)
 
     plt.show()
-
 
     return
 

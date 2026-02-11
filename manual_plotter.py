@@ -35,8 +35,8 @@ def drawArcPos(dir, v, i, avgV, avgI, p, t, t_scale):
     plt.locator_params('x', nbins=52)
     
     
-    fig.set_size_inches(30,15)
-    #plt.savefig(dir + '/visualizations/arcPosY.png')
+    fig.set_size_inches(30,10)
+    plt.savefig(dir + '/visualizations/arc_ydisp.png')
     
     fig, ax = plt.subplots(layout='constrained')
     ax.scatter(t, p)
