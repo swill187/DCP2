@@ -5,7 +5,7 @@ import pandas as pd
 
 import xml.etree.ElementTree as ET
 
-from helper_functions import selectFolder, setup_directory_structure
+from helper_functions import selectFolder, setup_directory_structure, get_kwargs
 
 def extract_xml_data(element, prefix=''):
     """Recursively extract all data from XML elements"""
@@ -105,18 +105,6 @@ def convert_robot_data_to_csv(dir, **kwargs):
 
 if __name__ == "__main__":
         
-        kwargs = {}
-        
-        if len(sys.argv) == 1:
-            dir = selectFolder()
+    [dir, kwargs] = get_kwargs()
 
-        if len(sys.argv) > 1:
-            dir = sys.argv[1]
-
-        if len(sys.argv) > 2:
-            kwargs['input_path'] = sys.argv[2]
-
-        if len(sys.argv) > 3:
-            kwargs['output_paths'] = [path for path in sys.argv[3:]]
-
-        convert_robot_data_to_csv(dir, **kwargs)
+    convert_robot_data_to_csv(dir, **kwargs)

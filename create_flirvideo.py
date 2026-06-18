@@ -8,7 +8,7 @@ from datetime import datetime
 import sys
 from tqdm import tqdm
 
-from helper_functions import selectFolder, get_FLIR_model, setup_directory_structure
+from helper_functions import selectFolder, get_FLIR_model, setup_directory_structure, get_kwargs
 
 def convert_to_8bit(image, global_min, global_max):
     image_normalized = (image - global_min) / (global_max - global_min)
@@ -167,17 +167,6 @@ def npy_to_video(dir, forceUpdate=False, fps=30, width=464, height=348, **kwargs
 
 if __name__ == "__main__":
 
-    kwargs = {}
-
-    import sys
-    if len(sys.argv) != 4:
-        dir = selectFolder()
+    [dir, kwargs] = get_kwargs()
     
-    else:
-
-        # Usage: python create_flirvideo.py <parent_dir> ><input_folder> <output_video> <output_frames>
-        dir                    = sys.argv[1]
-        kwargs['input_path']   = sys.argv[2]
-        kwargs['output_paths'] = [path for path in sys.argv[3:]]
-
     npy_to_video(dir, forceUpdate=True, **kwargs)

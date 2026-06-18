@@ -5,7 +5,7 @@ import pandas as pd
 import numpy as np
 import wave
 
-from helper_functions import selectFolder, setup_directory_structure
+from helper_functions import selectFolder, setup_directory_structure, get_kwargs
 
 # TODO: add kwargs for modification of default file names
 def csv_to_wav(dir, sampling_rate=48000, save_cols=['Absolute Time', 'Amplitude'], **kwargs):
@@ -74,24 +74,7 @@ def csv_to_wav(dir, sampling_rate=48000, save_cols=['Absolute Time', 'Amplitude'
 
 if __name__ == '__main__':
 
-    kwargs = {}
-
-    if len(sys.argv) == 1:
-        dir = selectFolder()
-
-    if len(sys.argv) > 1:
-        dir = sys.argv[1]
-
-    if len(sys.argv) > 2:
-        kwargs['input_file'] = sys.argv[2]
-
-    if len(sys.argv) > 3:
-
-        try:
-            kwargs['output_files'] = [arg for arg in sys.argv[3:5]]
-        except Exception as e:
-            print('Program expected 2 output file paths via command line. Exiting...')
-            sys.exit(1)
+    [dir, kwargs] = get_kwargs()
 
     csv_to_wav(dir, **kwargs)
     

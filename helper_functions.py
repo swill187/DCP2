@@ -10,6 +10,7 @@ import json
 from tqdm import tqdm
 from pathlib import Path
 import shutil
+import sys
 
 import tkinter as tk
 from tkinter import filedialog
@@ -149,6 +150,23 @@ def setup_directory_structure(dir, input_file, output_files, **kwargs):
         shutil.move(input_path, new_input_path)
 
     return new_input_path, output_paths
+
+def get_kwargs():
+    kwargs = {}
+
+    if len(sys.argv) == 1:
+        dir = selectFolder()
+
+    if len(sys.argv) > 1:
+        dir = sys.argv[1]
+
+    if len(sys.argv) > 2:
+        kwargs['input_path'] = sys.argv[2]
+
+    if len(sys.argv) > 3:
+        kwargs['output_paths'] = [path for path in sys.argv[3:]]
+        
+    return dir, kwargs
 
 #############################
 

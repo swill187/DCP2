@@ -4,7 +4,7 @@ import sys
 from pathlib import Path
 import numpy as np
 
-from helper_functions import selectFolder, setup_directory_structure
+from helper_functions import selectFolder, setup_directory_structure, get_kwargs
 
 # TODO: add **kwargs to allow for modification of input/output filenames
 def scale_lembox(dir, save_cols=['Timestamp', 'Scaled_Voltage(V)', 'Scaled_Current(A)'], **kwargs):
@@ -76,18 +76,6 @@ def scale_lembox(dir, save_cols=['Timestamp', 'Scaled_Voltage(V)', 'Scaled_Curre
 
 if __name__ == '__main__':
 
-    kwargs = {}
-
-    if len(sys.argv) == 1:
-        dir = selectFolder()
-
-    if len(sys.argv) > 1:
-        dir = sys.argv[1]
-
-    if len(sys.argv) > 2:
-        kwargs['input_path'] = sys.argv[2]
-
-    if len(sys.argv) > 3:
-        kwargs['output_paths'] = [path for path in sys.argv[3:]]
+    [dir, kwargs] = get_kwargs()
 
     scale_lembox(dir, **kwargs)
