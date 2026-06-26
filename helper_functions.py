@@ -17,6 +17,8 @@ import tkinter as tk
 from tkinter import filedialog
 from tkinter import simpledialog
 
+#%% Script Setup Helpers
+
 # function to setup a logger object for an arbitrary script. If the script's __name__ == '__main__' (aka if the script is the one the
 # user ran, not an import), then its logger is more verbose in the terminal than loggers for imported modules.
 def setup_logger(name):
@@ -60,87 +62,6 @@ def setup_logger(name):
     return logger
 
 logger = setup_logger(__name__)
-
-#############################
-
-# Stats helper functions
-
-# reworking statistics to use pd rolling method
-def applyRollingOperation(data, window_length, op, **args):
-
-    original_type = type(data)
-    data = pd.Series(data)
-
-    # error checking input
-    if np.isnan(data).any():
-        raise ValueError(op.__name__ + ': Array has NaN')
-
-    if window_length <= 1:
-        raise ValueError(op.__name__ + ': Average window too small')
-    
-    result = data.rolling(window_length, closed='both').op(*args)
-
-    return original_type(result)
-
-def getRollingAvg(data, avg_scale=1000):
-    return applyRollingOperation(data, avg_scale, np.mean)
-
-def getRollingStdDev(data, sd_scale=5000):
-    return applyRollingOperation(data, sd_scale, np.std)
-
-def getRollingSkew(data, sk_scale):
-    return applyRollingOperation(data, sk_scale, stats.skew)
-
-def getRollingKurtosis(data, k_scale):
-    return applyRollingOperation(data, k_scale, stats.kurtosis)
-
-#############################
-
-# takes an array and a limit value and returns the start:stop indices that bound  (array's value) > testLimit
-def getStartStop(testVal, testLimit = 1):
-
-    startTime = 0
-    for t, v in enumerate(testVal):
-        if v > testLimit: 
-            startTime = t
-            break
-
-    stopTime = 0
-    for t, v in enumerate(testVal[1:]):                                     # changed this to [1:], keep an eye on this if issues arise
-        if t < startTime:
-            continue
-
-        if testVal[t - 1] >=  testLimit and v < testLimit:
-            stopTime = t
-
-    if stopTime == 0: stopTime = len(testVal)
-
-    return startTime, stopTime
-
-def quickPlot(data, s=0.005):
-    plt.style.use('_mpl-gallery')
-    fig, ax = plt.subplots(len(data), 1, constrained_layout=True)
-
-    if len(data) > 1:
-        for j, d in enumerate(data):
-            for i, val in enumerate(d):
-                ax[i][j].scatter(val[0], val[1], s=s)
-    else:
-        for i, val in enumerate(data[0]):
-            ax[i].scatter(val[0], val[1], s=s)
-
-    return
-
-def dfToCsv(df, f):
-    df.to_csv(f, index=False)
-
-def dfHasColumn(df, id):
-    if id in df.columns: return True
-    return False
-
-def csvHasColumn(f, id):
-    if id in pd.read_csv(f, nrows=1): return True
-    return False
 
 def selectFolder(title='Select Top-Level Folder'):
     init_dir = os.path.expanduser('~')
@@ -227,9 +148,149 @@ def setup_directory_structure(dir, input_file, output_files, **kwargs):
 
     return new_input_path, output_paths
 
+# virtual class for HDF5 data structure. Inherited by all sensor types
+class data_stream():
+    
+    def __init__(self, loadpath):
+        
+        # prototype member vars
+        self.raw_filename = None
+        self.time_col = None
+        
+        self.loadpath = Path(loadpath)
+        self.flag_processed = False
+        
+    # iterate over path, read all data in path. preprocess that data and return a memory object ready to be operated on.
+    def load(self):
+        
+        # handle the case in which self.loadpath is a single file
+        if self.loadpath.is_file():
+            
+            # if file is .hdf5, read data for this specific sensor from .hdf5.
+            if self.loadpath.suffix == '.hdf5':
+                
+                self.flag_processed = True
+                raise('Error: HDF5 compatibility not implemented.')
+            
+            # if file is raw data, read it
+            else:
+                
+                if self.loadpath.name != self.raw_filename:
+                    logger.warning(f'{self.loadpath.name} is not the standard raw data filename. Attempting to read anyways...')
+                    
+                data = self.read_raw_data(self.loadpath)
+        
+        # handle the case in which self.loadpath is a directory
+        else:
+            
+            children = [p for p in self.loadpath.iterdir()]
+            
+            # handle the case in which self.loadpath is a single data collection directory
+            if self.loadpath.parents[0].startswith('data_collection'):
+                    
+                hdf5 = filter(lambda f: f.suffix == '.hdf5', children)
+                if hdf5:
+                    
+                    self.flag_processed = True
+                    raise('Error: HDF5 compatibility not implemented.')
+            
+                else:
+                    if self.raw_filename in [child.name for child in children]:
+                        data = self.read_raw_data(self.loadpath / self.raw_filename)
+            
+            # handle the case in which self.loadpath is a directory of data collection directories
+            else:
+                for child in children:
+                    if child.name.startswith('data_collection'):
+                        self.read_raw_data(child / self.raw_filename)
+                        
+                            
+                    
+        
+        
+    def read_raw_data(self, filepath):
+        
+        pd.read_csv(filepath)
+        
+    def preprocess(self, data):
+        
+        return data
+
+#%% Stats helper functions
+
+# reworking statistics to use pd rolling method
+def applyRollingOperation(data, window_length, op, **args):
+
+    original_type = type(data)
+    data = pd.Series(data)
+
+    # error checking input
+    if np.isnan(data).any():
+        raise ValueError(op.__name__ + ': Array has NaN')
+
+    if window_length <= 1:
+        raise ValueError(op.__name__ + ': Average window too small')
+    
+    result = data.rolling(window_length, closed='both').op(*args)
+
+    return original_type(result)
+
+def getRollingAvg(data, avg_scale=1000):
+    return applyRollingOperation(data, avg_scale, np.mean)
+
+def getRollingStdDev(data, sd_scale=5000):
+    return applyRollingOperation(data, sd_scale, np.std)
+
+def getRollingSkew(data, sk_scale):
+    return applyRollingOperation(data, sk_scale, stats.skew)
+
+def getRollingKurtosis(data, k_scale):
+    return applyRollingOperation(data, k_scale, stats.kurtosis)
+
+# takes an array and a limit value and returns the start:stop indices that bound  (array's value) > testLimit
+def getStartStop(testVal, testLimit = 1):
+
+    startTime = 0
+    for t, v in enumerate(testVal):
+        if v > testLimit: 
+            startTime = t
+            break
+
+    stopTime = 0
+    for t, v in enumerate(testVal[1:]):                                     # changed this to [1:], keep an eye on this if issues arise
+        if t < startTime:
+            continue
+
+        if testVal[t - 1] >=  testLimit and v < testLimit:
+            stopTime = t
+
+    if stopTime == 0: stopTime = len(testVal)
+
+    return startTime, stopTime
+
+def quickPlot(data, s=0.005):
+    plt.style.use('_mpl-gallery')
+    fig, ax = plt.subplots(len(data), 1, constrained_layout=True)
+
+    if len(data) > 1:
+        for j, d in enumerate(data):
+            for i, val in enumerate(d):
+                ax[i][j].scatter(val[0], val[1], s=s)
+    else:
+        for i, val in enumerate(data[0]):
+            ax[i].scatter(val[0], val[1], s=s)
+
+    return
+
+#%% IO helpers
+
+def csvHasColumn(f, id):
+    if id in pd.read_csv(f, nrows=1): return True
+    return False
+
 #############################
 
-# FLIR helper functions
+# FLIR helper functions TODO: Move to FLIR script!
 
 # data must be np.array!
 def flirConversion(data, model):
